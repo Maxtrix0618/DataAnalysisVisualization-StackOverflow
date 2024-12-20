@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Java Popular Topics</title>
+  <!-- Import echarts lib by CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>
+    /* Ensure the bar chart is centered on the page */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 80vh;
+      background-color: #f4f4f4;
+    }
+    #barchart {
+      width: 80%;
+      height: 60vh;
+      margin-top: 40px;
+    }
+    .chart-description {
+      width: 80%;
+      margin-top: 20px;
+      padding: 10px;
+      text-align: center;
+      background-color: #ffffff;
+      border: 1px solid #dddddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+<h1>Topics with the most Engagement from users with high Reputation</h1>
+<div class="chart-description">
+  EngagementOfTopic = Questions_num + Answers_num + Comments_num (by users with high Reputation)
+</div>
+<div id="barchart"></div>
+
+<script th:inline="javascript">
+  let reputationTh = /*[[${reputationThreshold}]]*/ 0
+  let tagFreTop = /*[[${engagedTopics}]]*/ []
+  let colors = [
+    '#ff6e0d', '#eab700', '#0bc441', '#00a0da',
+    '#8B0000', '#006400', '#4B0082', '#ea1387',
+    '#d2d90d', '#41d5c6', '#8528de', '#ff4d31',
+    '#1e53ff', '#0a8c8c', '#bd43ae', '#6ddc00'
+  ];
+
+  function lightenHexColor(hex, factor = 0.3) {
+    hex = hex.replace('#', '');
+    if (hex.length !== 6) return hex;
+    let r = parseInt(hex.substring(0, 2), 16);
+    let g = parseInt(hex.substring(2, 4), 16);
+    let b = parseInt(hex.substring(4, 6), 16);
+    r = Math.min(255, r + factor * (255 - r));
+    g = Math.min(255, g + factor * (255 - g));
+    b = Math.min(255, b + factor * (255 - b));
+    return "#" + ((1 << 24) | (Math.round(r) << 16) | (Math.round(g) << 8) | Math.round(b)).toString(16).slice(1).toUpperCase();
+  }
+  function selColor(index, ls) {
+    let co = colors[index % colors.length];
+    for (let i=0; i<ls; i++)
+      co = lightenHexColor(co);
+    return co;
+  }
+
+  let barData = Object.entries(tagFreTop).sort((a, b) => {
+    return (b[1].questions + b[1].answers + b[1].comments) - (a[1].questions + a[1].answers + a[1].comments);
+  }).map(([key, value]) => ({
+    name: key,
+    questions: value.questions,
+    answers: value.answers,
+    comments: value.comments
+  }));
+
+
+  // Bar chart : TFT
+  let barchart = echarts.init(document.getElementById('barchart'));
+  let barchartOption = {
+    title: {
+      text: 'Engagement of Top '+barData.length + ' with Reputation>'+reputationTh,
+      left: 'center',
+      textStyle: {
+        fontSize: 20,
+        color: '#000000'
+      }
+    },
+    legend: {
+      top: '7%',
+      right: '10%',
+      orient: "vertical",
+      textStyle: {color: '#333', fontSize: 12},
+      data: [
+        {name: 'In Comments', itemStyle: {color: selColor(2, 2)}},
+        {name: 'In Answers', itemStyle: {color: selColor(2, 1)}},
+        {name: 'In Questions', itemStyle: {color: selColor(2, 0)}}
+      ]
+    },
+    toolbox: {feature: {
+        dataView: {show: true, readOnly: false, lang: ['DataView', 'close', 'refresh']},
+        saveAsImage: {}
+    }},
+    tooltip: {
+      trigger: 'item',
+      formatter: function (params) {
+        let {name, seriesName, value, color} = params;
+        let colorDot = `<span style="display: inline-block; width: 10px; height: 10px; background-color: ${color}; border-radius: 50%; margin-right: 10px;"></span>`;
+        let theData = tagFreTop[name];
+        let total = theData.questions + theData.answers + theData.comments;
+        return `<b>${name}</b><br/>${colorDot}${seriesName}  ${value}/<b>${total}</b>`;
+      }
+    },
+    xAxis: {
+      type: 'category',
+      name: 'Topic',
+      nameTextStyle: {fontSize: 14, color: '#555'},
+      data: barData.map(item => item.name),
+      axisLabel: { interval: 0, rotate: 30 }
+    },
+    yAxis: {
+      type: 'value',
+      name: 'Engagement',
+      nameTextStyle: {fontSize: 14, color: '#555'},
+    },
+    series: [
+      {
+        name: 'In Questions',
+        type: 'bar',
+        stack: 'frequency',
+        data: barData.map(item => item.questions),
+        itemStyle: {color: function(params) {return selColor(params.dataIndex, 0);}},
+      },
+      {
+        name: 'In Answers',
+        type: 'bar',
+        stack: 'frequency',
+        data: barData.map(item => item.answers),
+        itemStyle: {color: function(params) {return selColor(params.dataIndex, 1);}},
+      },
+      {
+        name: 'In Comments',
+        type: 'bar',
+        stack: 'frequency',
+        data: barData.map(item => item.comments),
+        itemStyle: {color: function(params) {return selColor(params.dataIndex, 2);}},
+      }
+    ]
+  };
+  barchart.setOption(barchartOption);
+</script>
+</body>
+</html>

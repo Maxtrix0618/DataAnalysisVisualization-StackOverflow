@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Java Frequent Topics</title>
+  <!-- Import echarts lib by CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>
+    /* Ensure the charts have the same height and are centered */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 80vh;
+      background-color: #f4f4f4;
+    }
+    h1 {
+      margin-bottom: 40px;
+    }
+    .charts-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 90%;
+      height: 55vh;
+    }
+    .chart-wrapper {
+      width: 50%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    /* Optional: Add some space between the charts */
+    .chart-wrapper + .chart-wrapper {
+      margin-left: 30px;
+    }
+  </style>
+</head>
+<body>
+<h1>Topics that get frequently Asked</h1>
+<div class="charts-container">
+  <div class="chart-wrapper">
+    <div id="barchart" style="height: 100%; width: 100%"></div>
+  </div>
+  <div class="chart-wrapper">
+    <div id="piechart" style="height: 100%; width: 100%"></div>
+  </div>
+</div>
+
+<script th:inline="javascript">
+  let tagFreTop = /*[[${tagFreTop}]]*/ []
+  let tagFreTopO = /*[[${tagFreTop}]]*/ []
+  let barData = [];
+  let pieData = [];
+  let colors = [
+    '#FF7F27', '#FFC90E', '#28D15A', '#0BBDFC',
+    '#8B0000', '#006400', '#4B0082', '#FF1493',
+    '#FFD700', '#65fff0', '#8A2BE2', '#FF6347',
+    '#1E90FF', '#098d8d', '#cd92ff', '#7CFC00'
+  ];
+  let gray = '#BBBBBB';
+
+  let oth_tft = '(tags:others)';
+  delete tagFreTop[oth_tft];
+  let sortedTFT = Object.entries(tagFreTop).sort((a, b) => b[1] - a[1]);
+  sortedTFT.forEach(([key, value], index) => {
+    barData.push({name: key, value: value, color: colors[index % colors.length]});
+  });
+
+  let oth_Topic = tagFreTopO[oth_tft] ? { name: oth_tft, value: tagFreTopO[oth_tft] } : null;
+  delete tagFreTopO[oth_tft];
+  let sortedTFA = Object.entries(tagFreTopO).sort((a, b) => b[1] - a[1]);
+  sortedTFA.forEach(([key, value], index) => {
+    pieData.push({name: key, value: value, itemStyle: {color: colors[index % colors.length]}});
+  });
+  if (oth_Topic) {
+    pieData.push({name: oth_Topic.name, value: oth_Topic.value, itemStyle: {color: gray}});
+  }
+
+  // Bar chart : TFT
+  let barchart = echarts.init(document.getElementById('barchart'));
+  let barchartOption = {
+    title: {
+      text: 'Frequency of Top ' + sortedTFT.length,
+      left: 'center',
+      textStyle: {
+        fontSize: 20,
+        color: '#000000'
+      }
+    },
+    toolbox: {feature: {
+        dataView: {show: true, readOnly: false, lang: ['DataView', 'close', 'refresh']},
+        saveAsImage: {}
+    }},
+    tooltip: {
+      trigger: 'item'
+    },
+    xAxis: {
+      type: 'category',
+      name: 'Topic',
+      nameTextStyle: {fontSize: 14, color: '#555'},
+      data: barData.map(item => item.name),
+      axisLabel: { interval: 0, rotate: 30 }
+    },
+    yAxis: {
+      type: 'value',
+      name: 'Frequency',
+      nameTextStyle: {fontSize: 14, color: '#555'},
+    },
+    series: [{
+      type: 'bar',
+      top: '10%',
+      data: barData.map(item => item.value),
+      itemStyle: {
+        normal: {
+          color: function(params) {
+            return barData[params.dataIndex].color;
+          }
+        }
+      }
+    }]
+  };
+  barchart.setOption(barchartOption);
+
+  // Pie chart : TFA
+  let piechart = echarts.init(document.getElementById('piechart'));
+  let total = pieData.reduce((sum, item) => sum + item.value, 0);
+  let pieOption = {
+    title: {
+      text: 'Distribution of Top ' + sortedTFT.length,
+      left: 'center',
+      textStyle: {
+        fontSize: 20,
+        color: '#000000'
+      }
+    },
+    toolbox: {feature: {
+        dataView: {show: true, readOnly: false, lang: ['DataView', 'close', 'refresh']},
+        saveAsImage: {}
+    }},
+    tooltip: {
+      trigger: 'item',
+      formatter: function (params) {
+        let percent = ((params.value / total) * 100).toFixed(2);
+        let colorDot = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:${params.color};margin-right:5px;"></span>`;
+        return `${colorDot}${params.name}<br/><b>${params.value}</b> (<b>${percent}%</b>)`;
+      }
+    },
+    series: [{
+      type: 'pie',
+      top: '10%',
+      radius: '80%',
+      data: pieData,
+      emphasis: {
+        itemStyle: {
+          shadowBlur: 10,
+          shadowOffsetX: 0,
+          shadowColor: 'rgba(0,0,0,0.5)'
+        }
+      }
+    }]
+  };
+  piechart.setOption(pieOption);
+
+  // piechart.on('click', function (params) {
+  //   pieOption = {
+  //     series: [{
+  //       data: pieOption.series[0].data.filter(function(item) {
+  //         return item.name !== params.name;
+  //       })
+  //     }]
+  //   }
+  //   piechart.setOption(pieOption);
+  // });
+</script>
+
+</body>
+</html>

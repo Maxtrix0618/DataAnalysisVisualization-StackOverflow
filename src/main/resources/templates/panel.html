@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Stackoverflow Java Threads Visualization</title>
+  <style>
+    .intro {
+      font-size: 1.2em;
+      color: #0b5b53;
+      background: linear-gradient(to right, #f0f0f0, #e0fbff);
+      padding: 10px 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      display: inline-block;
+      text-align: center;
+      margin: 20px auto;
+    }
+    .intro span {
+      color: #00a67c;
+      font-size: 1.25em;
+      font-weight: bold;
+      text-shadow: 1px 1px 4px rgba(40, 45, 45, 0.2);
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h2 {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+    }
+
+    .section {
+      margin: 20px auto;
+      max-width: 400px;
+    }
+
+    .form-container {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 10px;
+      align-items: center;
+    }
+    .form-container label {
+      font-weight: bold;
+    }
+    .form-container input {
+      width: 92%;
+      padding: 10px;
+      font-size: 14px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .form-tray {
+      text-align: left;
+      padding: 15px;
+      margin: 10px 0;
+      background-color: #f9f9f9;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .green-center {
+      margin-top: 10px;
+      text-align: center;
+    }
+    .green-center button {
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      width: 18%;
+      margin-top: 10px;
+    }
+    .green-center button:hover {
+      background-color: #45a049;
+    }
+
+    .blue-center {
+      margin-top: 10px;
+      text-align: center;
+    }
+    .blue-center button {
+      background-color: #007BFF;
+      color: white;
+      cursor: pointer;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      width: 32%;
+      margin-top: 10px;
+    }
+    .blue-center button:hover {
+      background-color: #0056b3;
+    }
+    .blue-center input {
+      width: 95%;
+      padding: 10px;
+      font-size: 14px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      background-color: #f0f0f0;
+      color: #333;
+      text-align: left;
+      resize: none;
+    }
+  </style>
+</head>
+<body>
+<h1>Stackoverflow Java Threads Visualization</h1>
+<!--/*@thymesVar id="questions" type=""*/-->
+<!--/*@thymesVar id="answers" type=""*/-->
+<!--/*@thymesVar id="comments" type=""*/-->
+<h3 class="intro">
+  Based on
+  <span th:text="${questions}">?</span> Threads with
+  <span th:text="${answers}">?</span> answers and
+  <span th:text="${comments}">?</span> comments
+</h3>
+
+<!-- 1.Java Frequently-Asked Topics Form -->
+<div class="section">
+  <h2>I-1. Java Frequently-Asked Topics</h2>
+  <div class="form-tray">
+    <form class="form-container" id="submit1" action="/fa-topics" method="get" target="_blank">
+      <label for="topN">Top N:</label>
+      <input type="number" id="topN" name="topN" value="16" min="1" required>
+    </form>
+    <div class="green-center">
+      <button type="submit" onclick="document.getElementById('submit1').submit();">Go</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2.Java Popular Topics Form -->
+<div class="section">
+  <h2>I-2. Java Popular Topics</h2>
+  <div class="form-tray">
+    <form class="form-container" id="submit2" action="/hrue-topics" method="get" target="_blank">
+      <label for="hrueTopN">Top N:</label>
+      <input type="number" id="hrueTopN" name="topN" value="24" min="1" required>
+      <label for="reputationThreshold">Reputation above:</label>
+      <input type="number" id="reputationThreshold" name="reputationThreshold" value="2000" required>
+    </form>
+    <div class="green-center">
+      <button type="submit" onclick="document.getElementById('submit2').submit();">Go</button>
+    </div>
+  </div>
+</div>
+
+<!-- 3.Java Frequently-Discussed Mistakes Form -->
+<div class="section">
+  <h2>I-3. Java Frequently-Discussed Mistakes</h2>
+  <div class="form-tray">
+    <form class="form-container" id="submit3" action="/fd-mistakes" method="get" target="_blank">
+      <label for="mistakesTopN">Top N:</label>
+      <input type="number" id="mistakesTopN" name="topN" value="16" min="1" required>
+    </form>
+    <div class="green-center">
+      <button type="submit" onclick="document.getElementById('submit3').submit();">Go</button>
+    </div>
+  </div>
+</div>
+
+<!-- 4.Java HighQualityAnswers Analysis Form -->
+<div class="section">
+  <h2>I-4. Java HighQualityAnswers Analysis</h2>
+  <div class="form-tray">
+    <form class="form-container" id="submit4" action="/analysis-highQualityAnswer" method="get" target="_blank">
+      <label for="scoreLimit">Answer Score under:</label>
+      <input type="number" id="scoreLimit" name="scoreLimit" value="80000">
+      <label for="orderLimit">Order under:</label>
+      <input type="number" id="orderLimit" name="orderLimit" value="64">
+      <label for="timeIntervalLimit">Time Interval under:</label>
+      <input type="number" id="timeIntervalLimit" name="timeIntervalLimit" value="1000000">
+      <label for="reputationLimit">Reputation under:</label>
+      <input type="number" id="reputationLimit" name="reputationLimit" value="200000">
+      <label for="answerLengthLimit">Answer Length under:</label>
+      <input type="number" id="answerLengthLimit" name="answerLengthLimit" value="50000">
+    </form>
+    <div class="green-center">
+      <button type="submit" onclick="document.getElementById('submit4').submit();">Go</button>
+    </div>
+  </div>
+</div>
+
+<!-- 5.Topics Frequency API Tools -->
+<div class="section">
+  <h2>II-1. Topics Frequency API</h2>
+  <div class="form-tray">
+    <form class="form-container">
+      <label for="topicName">Topic:</label>
+      <input type="text" id="topicName" value="spring" required>
+    </form>
+    <div class="blue-center">
+      <label for="topicNameApi"></label>
+      <a id="link1a" href="/api/topics-frequency/spring" target="_blank">
+        <input id="topicNameApi" type="text" readonly value="/api/topics-frequency/spring"
+               onclick="updateApiLink('topicNameApi', 'link1a')" style="width: 95%;">
+      </a>
+      <button onclick="generateNameApiLink('/api/topics-frequency', 'topicName', 'topicNameApi')">Generate Link</button>
+    </div>
+  </div>
+  <div class="form-tray">
+    <form class="form-container">
+      <label for="topicsTopN">Top N:</label>
+      <input type="number" id="topicsTopN" value="16" min="1">
+    </form>
+    <div class="blue-center">
+      <label for="topicsTopApi"></label>
+      <a id="link1b" href="/api/topics-frequency?topN=16" target="_blank">
+        <input id="topicsTopApi" type="text" readonly value="/api/topics-frequency?topN=16"
+               onclick="updateApiLink('topicsTopApi', 'link1b')" style="width: 95%;">
+      </a>
+      <button onclick="generateTopicTopApiLink('topicsTopN', 'topicsTopApi')">Generate Link</button>
+    </div>
+  </div>
+</div>
+
+<!-- 6.Bugs Frequency API Tools -->
+<div class="section">
+  <h2>II-2. Bugs Frequency API</h2>
+  <div class="form-tray">
+    <form class="form-container">
+      <label for="bugType_n">Type:</label>
+      <input type="text" id="bugType_n" value="error" required>
+      <label for="bugName">Bug:</label>
+      <input type="text" id="bugName" value="OutOfMemoryError" required>
+    </form>
+    <div class="blue-center">
+      <label for="bugNameApi"></label>
+      <a id="link2a" href="/api/bugs-frequency/error/OutOfMemoryError" target="_blank">
+        <input id="bugNameApi" type="text" readonly value="/api/bugs-frequency/error/OutOfMemoryError"
+               onclick="updateApiLink('bugNameApi', 'link2a')" style="width: 95%;">
+      </a>
+      <button onclick="generateNameApiLink(combineStrBox('/api/bugs-frequency', 'bugType_n'), 'bugName', 'bugNameApi')">Generate Link</button>
+    </div>
+  </div>
+
+  <div class="form-tray">
+    <form class="form-container">
+      <label for="bugType_t">Type:</label>
+      <input type="text" id="bugType_t" value="exception" required>
+      <label for="bugsTopN">Top N:</label>
+      <input type="number" id="bugsTopN" value="16" min="1">
+    </form>
+    <div class="blue-center">
+      <label for="bugsTopApi"></label>
+      <a id="link2b" href="/api/bugs-frequency/exception?topN=16" target="_blank">
+        <input id="bugsTopApi" type="text" readonly value="/api/bugs-frequency/exception?topN=16"
+               onclick="updateApiLink('bugsTopApi', 'link2b')" style="width: 95%;">
+      </a>
+      <button onclick="generateBugsTopApiLink('bugType_t', 'bugsTopN', 'bugsTopApi')">Generate Link</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function combineStrBox(str, box) {
+    return `${str}/${document.getElementById(box).value}`;
+  }
+
+  function generateNameApiLink(parent, input, box) {
+    document.getElementById(box).value = combineStrBox(parent, input);
+  }
+  function generateTopicTopApiLink(input, box) {
+    const topN = document.getElementById(input).value;
+    document.getElementById(box).value = `/api/topics-frequency?topN=${topN}`;
+  }
+  function generateBugsTopApiLink(input1, input2, box) {
+    const bugType = document.getElementById(input1).value;
+    const topN = document.getElementById(input2).value;
+    document.getElementById(box).value = `/api/bugs-frequency/${bugType}?topN=${topN}`;
+  }
+
+  function updateApiLink(box, link) {
+    document.getElementById(link).href = document.getElementById(box).value;
+  }
+</script>
+
+</body>
+</html>

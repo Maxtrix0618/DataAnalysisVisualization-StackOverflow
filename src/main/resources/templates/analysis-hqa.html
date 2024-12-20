@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Java HighQualityAnswers Analysis</title>
+  <!-- Import echarts lib by CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <!-- Import big lib by CDN_JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/big.js/6.1.1/big.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      background-color: #f4f4f4;
+      min-height: 100vh;
+      overflow-y: auto;
+    }
+
+    .chart-row {
+      display: flex;
+      justify-content: space-around;
+      width: 95%;
+      margin-top: 40px;
+    }
+
+    .chart-container {
+      width: 50%;
+      height: 600px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .chart-description {
+      width: 80%;
+      margin-top: 20px;
+      padding: 10px;
+      text-align: center;
+      background-color: #ffffff;
+      border: 1px solid #dddddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+<h1>Java High-Quality-Answers Analysis</h1>
+
+<div class="chart-description">
+  The centroid coordinates are equal to the average coordinates of the points.
+</div>
+
+<div class="chart-row">
+  <div id="scatter1" class="chart-container"></div>
+  <div id="scatter2" class="chart-container"></div>
+</div>
+<div class="chart-row">
+  <div id="scatter3" class="chart-container"></div>
+  <div id="scatter4" class="chart-container"></div>
+</div>
+<div class="chart-row">
+  <div id="scatter5" class="chart-container"></div>
+  <div id="scatter6" class="chart-container"></div>
+</div>
+<div class="chart-row">
+  <div id="scatter7" class="chart-container"></div>
+  <div id="scatter8" class="chart-container"></div>
+</div>
+
+<script th:inline="javascript">
+  let ta0 = /*[[${timeInterval_a0}]]*/ [];
+  let tr0 = /*[[${timeInterval_r0}]]*/ [];
+  let oa0 = /*[[${order_a0}]]*/ [];
+  let or0 = /*[[${order_r0}]]*/ [];
+  let ra0 = /*[[${reputation_a0}]]*/ [];
+  let rr0 = /*[[${reputation_r0}]]*/ [];
+  let la0 = /*[[${answerLength_a0}]]*/ [];
+  let lr0 = /*[[${answerLength_r0}]]*/ [];
+
+  let ta1 = /*[[${timeInterval_a1}]]*/ [];
+  let tr1 = /*[[${timeInterval_r1}]]*/ [];
+  let oa1 = /*[[${order_a1}]]*/ [];
+  let or1 = /*[[${order_r1}]]*/ [];
+  let ra1 = /*[[${reputation_a1}]]*/ [];
+  let rr1 = /*[[${reputation_r1}]]*/ [];
+  let la1 = /*[[${answerLength_a1}]]*/ [];
+  let lr1 = /*[[${answerLength_r1}]]*/ [];
+
+  // Function to convert the List<Map<Number, List<Number>>> to a format suitable for scatter chart
+  function transformData(data) {
+    return data.map(item => {
+      const id = Object.keys(item)[0];
+      const coords = Object.values(item)[0];
+      return {id: id, value: coords};
+    });
+  }
+
+  function calculateCentroid(data) {
+    let xSum = new Big(0);
+    let ySum = new Big(0);
+    let count = data.length;
+    data.forEach(item => {
+      const coords = Object.values(item)[0];
+      if (!isNaN(coords[0]) && !isNaN(coords[1])) {
+        xSum = xSum.plus(coords[0]);
+        ySum = ySum.plus(coords[1]);
+      }
+    });
+    return [xSum.div(count).toNumber(), ySum.div(count).toNumber()];
+  }
+
+  function colorDot(color) {
+    return `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:${color};margin-right:5px;"></span>`;
+  }
+
+  function createScatterChart(containerId, dataA, dataR, colors, title, xName, yName) {
+    let chart = echarts.init(document.getElementById(containerId));
+    const centroidA = calculateCentroid(dataA);
+    const centroidR = calculateCentroid(dataR);
+    let option = {
+      title: {
+        text: title + "-Score Scatter",
+        left: 'center',
+        textStyle: {
+          fontSize: 20,
+          color: '#000'
+        }
+      },
+      tooltip: {
+        trigger: 'item',
+        formatter: function (params) {
+          return `${colorDot(params.color)}AID: ${params.data.id}<br>${xName}: ${params.value[0]}<br>${yName}: ${params.value[1]}`;
+        }
+      },
+      toolbox: {
+        feature: {
+          dataZoom: {yAxisIndex: 'all', xAxisIndex: 'all',},
+          restore: {},
+          dataView: {show: true, readOnly: false, lang: ['DataView', 'close', 'refresh']},
+          saveAsImage: {}
+        }
+      },
+      dataZoom: [
+        {
+          type: 'slider',
+          xAxisIndex: 0,
+          start: 0,
+          end: 100
+        },
+        {
+          type: 'inside',
+          xAxisIndex: 0,
+          start: 0,
+          end: 100
+        },
+        {
+          type: 'inside',
+          yAxisIndex: 0,
+          start: 0,
+          end: 100
+        }
+      ],
+      legend: {
+        top: '10%',
+        right: '10%',
+        data: ['Accepted', 'Not_accepted', 'Centroid-A', 'Centroid-N'],
+        textStyle: {
+          fontSize: 14,
+          color: '#555'
+        }
+      },
+      xAxis: {
+        type: 'value',
+        name: xName,
+        nameTextStyle: { fontSize: 14, color: '#555' }
+      },
+      yAxis: {
+        type: 'value',
+        name: yName,
+        nameTextStyle: { fontSize: 14, color: '#555' }
+      },
+      series: [
+        {
+          name: 'Accepted',
+          type: 'scatter',
+          symbolSize: 8,
+          data: transformData(dataA),
+          itemStyle: { color: colors[0] }
+        },
+        {
+          name: 'Not_accepted',
+          type: 'scatter',
+          symbolSize: 8,
+          data: transformData(dataR),
+          itemStyle: { color: colors[1] }
+        },
+        {
+          name: 'Centroid-A',
+          type: 'scatter',
+          symbolSize: 16,
+          data: [{ value: centroidA }],
+          itemStyle: { color: colors[2] },
+          markPoint: {
+            data: [
+              { type: 'max', name: 'Centroid-A', coord: centroidA, symbol: 'circle', symbolSize: 20, itemStyle: { color: colors[2] },
+                tooltip: {
+                  trigger: 'item',
+                  formatter: function (params) {
+                    return `${colorDot(params.color)}Centroid (Accepted):<br>${xName}: ${centroidA[0]}<br>${yName}: ${centroidA[1]}`;
+                  }
+                }}
+            ]
+          }
+        },
+        {
+          name: 'Centroid-N',
+          type: 'scatter',
+          symbolSize: 16,
+          data: [{ value: centroidR }],
+          itemStyle: { color: colors[3] },
+          markPoint: {
+            data: [
+              { type: 'max', name: 'Centroid-N', coord: centroidR, symbol: 'circle', symbolSize: 20, itemStyle: { color: colors[3] },
+                tooltip: {
+                  trigger: 'item',
+                  formatter: function (params) {
+                    return `${colorDot(params.color)}Centroid (Not_accepted):<br>${xName}: ${centroidR[0]}<br>${yName}: ${centroidR[1]}`;
+                  }
+                }}
+            ]
+          }
+        }
+      ]
+    };
+    chart.setOption(option);
+  }
+
+  let t_color = ['#00ccccdd', '#9ab481dd', '#40ffffaa', '#cef3aeaa'];
+  let r_color = ['#dc8e00dd', '#bcc087dd', '#ffb935aa', '#dfe5a3aa'];
+  let l_color = ['#a724ffdd', '#ae9dc9dd', '#c163ffaa', '#e2ccffaa'];
+
+  createScatterChart('scatter1', ta0, tr0, t_color, 'TimeInterval(m)', 'TI', 'Score');
+  createScatterChart('scatter2', ta1, tr1, t_color, 'LogTimeInterval(min)', 'ln(TI)', 'ln(S+10)');
+  createScatterChart('scatter3', oa0, or0, t_color, 'Order', 'O', 'Score');
+  createScatterChart('scatter4', oa1, or1, t_color, 'LogOrder', 'ln(O)', 'ln(S+10)');
+  createScatterChart('scatter5', ra0, rr0, r_color, 'Reputation', 'R', 'Score');
+  createScatterChart('scatter6', ra1, rr1, r_color, 'LogReputation', 'ln(R)', 'ln(S+10)');
+  createScatterChart('scatter7', la0, lr0, l_color, 'AnswerLength', 'AL', 'Score');
+  createScatterChart('scatter8', la1, lr1, l_color, 'LogAnswerLength', 'ln(AL)', 'ln(S+10)');
+</script>
+
+</body>
+</html>
