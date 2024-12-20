@@ -221,10 +221,6 @@ public class DataCollectionService {
         nfQAC[5] = commentRepository.count();
     }
 
-    /**
-     * T: thread
-     *
-     */
     private void log(String message) {System.out.print(message);}
 
 //    public long[] refreshComments() {
